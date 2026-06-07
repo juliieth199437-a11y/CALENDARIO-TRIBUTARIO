@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Tributario"/>
+<meta name="theme-color" content="#0F172A"/>
+<title>Calendario Tributario · Julieth</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Georgia',serif;background:#F1F5F9;min-height:100vh;overscroll-behavior:none;}
+  ::-webkit-scrollbar{display:none;}
+
+  /* HEADER */
+  .header{background:linear-gradient(160deg,#0F172A 0%,#1E3A5F 100%);padding:52px 16px 0;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.35);}
+  .header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+  .header-title{font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;}
+  .header-sub{font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:4px;}
+  .header-prog{text-align:right;}
+  .header-prog-label{font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;}
+  .header-prog-val{font-size:20px;font-weight:900;color:#86EFAC;}
+  .header-prog-val.urgente{color:#FCA5A5;}
+
+  /* STATS */
+  .stats{display:flex;gap:8px;margin-bottom:12px;}
+  .stat{flex:1;background:rgba(255,255,255,0.08);border-radius:10px;padding:7px 4px;text-align:center;}
+  .stat-v{font-size:18px;font-weight:900;line-height:1;}
+  .stat-l{font-size:9px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+
+  /* MESES */
+  .meses{display:flex;gap:4px;overflow-x:auto;padding-bottom:12px;-webkit-overflow-scrolling:touch;}
+  .mes-btn{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:none;border-radius:20px;
+    padding:5px 12px;font-size:11px;font-weight:500;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+  .mes-btn.activo{background:#fff;color:#0F172A;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+  .mes-btn.sin-datos{opacity:0.35;}
+  .mes-dot{display:block;width:4px;height:4px;background:#3B82F6;border-radius:50%;margin:2px auto 0;}
+
+  /* CONTENIDO */
+  .content{max-width:720px;margin:0 auto;padding:14px 12px 80px;}
+
+  /* BUSQUEDA */
+  .search{width:100%;border:1.5px solid #E2E8F0;border-radius:12px;padding:10px 14px;
+    font-size:14px;background:#fff;margin-bottom:14px;font-family:inherit;
+    box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+
+  /* EMPRESA CARD */
+  .empresa-card{background:#fff;border-radius:16px;margin-bottom:16px;
+    box-shadow:0 2px 16px rgba(0,0,0,0.07);overflow:hidden;}
+  .empresa-header{padding:14px 16px;cursor:pointer;display:flex;align-items:flex-start;gap:10;}
+  .empresa-nombre{color:#fff;font-weight:800;font-size:14px;letter-spacing:-0.3px;}
+  .empresa-sub{color:rgba(255,255,255,0.7);font-size:11px;margin-top:2px;}
+  .empresa-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;}
+  .badge{font-size:9px;font-weight:700;border-radius:20px;padding:2px 7px;text-transform:uppercase;letter-spacing:0.5px;}
+  .badge-white{background:rgba(255,255,255,0.2);color:#fff;}
+  .badge-dark{background:rgba(0,0,0,0.2);color:rgba(255,255,255,0.85);}
+  .empresa-right{display:flex;gap:5px;align-items:center;flex-shrink:0;margin-left:auto;}
+  .badge-urgente{background:rgba(255,255,255,0.25);color:#fff;font-size:11px;font-weight:700;border-radius:20px;padding:3px 9px;}
+  .badge-prog{background:rgba(255,255,255,0.2);color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:3px 10px;}
+  .chevron{color:rgba(255,255,255,0.8);font-size:14px;flex-shrink:0;}
+
+  /* BARRA PROGRESO */
+  .prog-bar{height:3px;background:#F3F4F6;}
+  .prog-fill{height:100%;transition:width 0.4s;}
+
+  /* CUERPO EMPRESA */
+  .empresa-body{padding:12px 12px 8px;}
+
+  /* TABS */
+  .tabs{display:flex;gap:5px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tab-btn{border:1.5px solid;border-radius:20px;padding:5px 11px;font-size:11px;font-weight:700;
+    cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;}
+
+  /* CHECK ITEM */
+  .check-item{border-radius:10px;margin-bottom:7px;overflow:hidden;border:1.5px solid #E5E7EB;background:#FAFAFA;}
+  .check-item.done{background:#F8FFFE;border-color:#A7F3D0;opacity:0.8;}
+  .check-item.urgente{border-color:#FCA5A5;}
+  .check-row{display:flex;align-items:center;padding:10px 11px;gap:8px;cursor:pointer;}
+  .check-box{width:20px;height:20px;border-radius:5px;border:2px solid #D1D5DB;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all 0.15s;}
+  .check-box.checked{border-color:var(--c)!important;background:var(--c)!important;}
+  .check-label{flex:1;font-size:13px;font-weight:600;color:#111827;}
+  .check-label.done{text-decoration:line-through;color:#6B7280;}
+  .check-meta{display:flex;gap:4px;align-items:center;}
+  .dias-badge{border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;}
+  .dias-red{background:#FEE2E2;color:#B91C1C;}
+  .dias-yellow{background:#FEF3C7;color:#B45309;}
+  .dias-green{background:#F0FDF4;color:#166534;}
+
+  /* EXPANDIDO */
+  .check-detail{padding:0 11px 11px;border-top:1px solid #F3F4F6;}
+  .field-group{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .field{flex:1;min-width:130px;}
+  .field label{font-size:10px;color:#6B7280;font-weight:700;display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:0.5px;}
+  .field input,.field select,.field textarea{width:100%;border:1.5px solid #E5E7EB;border-radius:7px;
+    padding:6px 9px;font-size:13px;color:#111827;background:#F9FAFB;font-family:inherit;}
+  .field textarea{resize:vertical;}
+  .empty-msg{color:#9CA3AF;font-size:13px;text-align:center;padding:14px 0;}
+  .save-note{text-align:center;font-size:11px;color:#94A3B8;margin-top:6px;}
+
+  /* EMPTY MES */
+  .empty-mes{text-align:center;padding:40px 20px;color:#94A3B8;}
+  .empty-mes-icon{font-size:40px;margin-bottom:10px;}
+  .empty-mes-txt{font-weight:700;font-size:16px;}
+
+  /* PENDIENTES LIBRES */
+  .fab{position:fixed;bottom:24px;right:18px;width:52px;height:52px;border-radius:50%;
+    background:linear-gradient(135deg,#1E3A5F,#0F172A);color:#fff;border:none;
+    font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);z-index:200;
+    display:flex;align-items:center;justify-content:center;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:flex;align-items:flex-end;}
+  .modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-height:70vh;overflow-y:auto;}
+  .modal-title{font-size:16px;font-weight:800;color:#0F172A;margin-bottom:14px;}
+  .modal-input{width:100%;border:1.5px solid #E2E8F0;border-radius:10px;padding:10px 14px;
+    font-size:14px;font-family:inherit;margin-bottom:8px;}
+  .modal-btn{width:100%;background:#0F172A;color:#fff;border:none;border-radius:10px;
+    padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .pendiente-libre{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;}
+  .pendiente-libre:last-child{border-bottom:none;}
+  .del-btn{background:none;border:none;color:#EF4444;font-size:18px;cursor:pointer;padding:0 4px;}
+  .modal-close{background:#F3F4F6;color:#374151;border:none;border-radius:10px;
+    padding:10px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;font-family:inherit;}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ─── DATOS ────────────────────────────────────────────────────────────
+const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+               "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+const COLORES = {
+  LNC:    {bg:"#7C3AED",light:"#EDE9FE",text:"#5B21B6"},
+  CHONAMA:{bg:"#059669",light:"#D1FAE5",text:"#065F46"},
+  JMB:    {bg:"#2563EB",light:"#DBEAFE",text:"#1E40AF"},
+  YACOTA: {bg:"#D97706",light:"#FEF3C7",text:"#92400E"},
+  KTJESUS:{bg:"#DB2777",light:"#FCE7F3",text:"#9D174D"},
+  LUZ:    {bg:"#0891B2",light:"#CFFAFE",text:"#155E75"},
+};
+
+const EMPRESAS = [
+  {id:"LNC",nombre:"LNC ORDICO SAS",nit:"901.043.099",tipo:"Persona Jurídica",
+   actividad:"Comercializadora de carnes y restaurante",contabilidad:true,
+   obs:{1:["IVA Bimestral","Retefuente","ReteICA"],2:["Retefuente"],
+        3:["IVA Bimestral","Retefuente","ReteICA"],4:["Retefuente"],
+        5:["IVA Bimestral","Retefuente","ReteICA","ICA Cajicá","Declaración Renta","Exógena"],
+        6:["Retefuente","ICA Cajicá"],
+        7:["IVA Bimestral","Retefuente","ReteICA"],8:["Retefuente"],
+        9:["IVA Bimestral","Retefuente","ReteICA"],10:["Retefuente"],
+        11:["IVA Bimestral","Retefuente","ReteICA"],12:["Retefuente"]},
+   cierre:["Balance de Prueba","Estado de Resultados","Conciliación Bancaria",
+           "Cuentas por Cobrar","Cuentas por Pagar","Nómina y Seg. Social","Depreciaciones","Provisiones"]},
+
+  {id:"CHONAMA",nombre:"CHONAMA COL SAS",nit:"901.251.294",tipo:"Persona Jurídica",
+   actividad:"Arrendar a través de inmobiliaria bienes propios",contabilidad:true,
+   obs:{1:["IVA Cuatrimestral","Retefuente","ReteICA"],2:["Retefuente","ICA Bogotá"],
+        3:["Retefuente","ReteICA"],4:["Retefuente"],
+        5:["IVA Cuatrimestral","Retefuente","ReteICA","Declaración Renta"],
+        6:["Retefuente","ICA Bogotá","Exógena"],
+        7:["Retefuente","ReteICA"],8:["Retefuente"],
+        9:["IVA Cuatrimestral","Retefuente","ReteICA"],10:["Retefuente"],
+        11:["Retefuente","ReteICA"],12:["Retefuente"]},
+   cierre:["Balance de Prueba","Estado de Resultados","Conciliación Bancaria",
+           "Arriendos por Cobrar","Cuentas por Pagar","Seguridad Social","Depreciaciones"]},
+
+  {id:"JMB",nombre:"JUAN MARIO BONILLA PEREA",nit:"79.506.175",tipo:"Persona Natural",
+   actividad:"Arrendar a través de inmobiliaria bienes propios",contabilidad:true,
+   obs:{1:["IVA Cuatrimestral","Retefuente"],2:["Retefuente","ICA"],
+        3:["Retefuente"],4:["Retefuente"],
+        5:["IVA Cuatrimestral","Retefuente","Impuesto al Patrimonio","Declaración Renta"],
+        6:["Retefuente","Exógena"],
+        7:["Retefuente"],8:["Retefuente"],
+        9:["IVA Cuatrimestral","Retefuente"],10:["Retefuente","Declaración Renta PN"],
+        11:["Retefuente"],12:["Retefuente"]},
+   cierre:["Balance de Prueba","Conciliación Bancaria","Revisión Arriendos",
+           "Gastos Personales Deducibles","Depreciaciones"]},
+
+  {id:"YACOTA",nombre:"YACOTA SAS",nit:"900.570.364",tipo:"Persona Jurídica",
+   actividad:"Fabricación y comercialización de chorizos",contabilidad:true,
+   obs:{1:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota","ICA Cota"],
+        2:["Retefuente","ICA Bogotá"],
+        3:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota","ICA Cota"],
+        4:["Retefuente"],
+        5:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota","ICA Cota","Declaración Renta"],
+        6:["Retefuente","Exógena"],
+        7:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota","ICA Cota"],
+        8:["Retefuente"],
+        9:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota","ICA Cota"],
+        10:["Retefuente"],
+        11:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota","ICA Cota"],
+        12:["Retefuente"]},
+   cierre:["Balance de Prueba","Estado de Resultados","Inventario de Producto",
+           "Conciliación Bancaria","Cuentas por Cobrar","Cuentas por Pagar",
+           "Nómina y Seg. Social","Depreciaciones","Costos de Producción"]},
+
+  {id:"KTJESUS",nombre:"JESUS HERNAN TORRES",nit:"1.015.423.003",tipo:"Persona Natural",
+   actividad:"Comercialización de telas y productos textiles",contabilidad:false,
+   obs:{2:["ICA Bogotá"],5:["IVA Cuatrimestral","Declaración Renta","Exógena"],9:["IVA Cuatrimestral"]},
+   cierre:["Revisión Ingresos","Revisión Gastos Deducibles","Soporte Compras y Ventas"]},
+
+  {id:"LUZ",nombre:"LUZ STELLA TORRES PAIBA",nit:"53.052.501",tipo:"Persona Natural",
+   actividad:"Comercialización de muebles",contabilidad:false,
+   obs:{2:["ICA Bogotá"],5:["IVA Cuatrimestral"],8:["Declaración Renta"],9:["IVA Cuatrimestral"]},
+   cierre:["Revisión Ingresos","Revisión Gastos Deducibles","Soporte Compras y Ventas"]},
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────
+let state = {
+  mes: new Date().getMonth() + 1,
+  checks: {},
+  expandidos: {},
+  tabs: {},
+  empresasColapsadas: {},
+  busqueda: "",
+  modalPendiente: false,
+  nuevoPendiente: "",
+  pendientesLibres: [],
+};
+
+function loadStorage() {
+  try {
+    const d = localStorage.getItem("cal-trib-julieth-v3");
+    if (d) {
+      const p = JSON.parse(d);
+      state.checks = p.checks || {};
+      state.pendientesLibres = p.pendientesLibres || [];
+    }
+  } catch(e){}
+}
+
+function saveStorage() {
+  try {
+    localStorage.setItem("cal-trib-julieth-v3", JSON.stringify({
+      checks: state.checks,
+      pendientesLibres: state.pendientesLibres,
+    }));
+  } catch(e){}
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────
+function diasRestantes(fecha) {
+  if (!fecha) return null;
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const lim = new Date(fecha + "T00:00:00");
+  return Math.ceil((lim - hoy) / 86400000);
+}
+
+function diasBadgeHtml(dias) {
+  if (dias === null) return "";
+  let cls, txt;
+  if (dias < 0)      { cls="dias-badge dias-red"; txt=`Vencido ${Math.abs(dias)}d`; }
+  else if (dias===0) { cls="dias-badge dias-red"; txt="¡Hoy!"; }
+  else if (dias<=3)  { cls="dias-badge dias-red"; txt=`${dias}d`; }
+  else if (dias<=8)  { cls="dias-badge dias-yellow"; txt=`${dias}d`; }
+  else               { cls="dias-badge dias-green"; txt=`${dias}d`; }
+  return `<span class="${cls}">${txt}</span>`;
+}
+
+function getCheck(key) {
+  return state.checks[key] || {estado:"pendiente", fecha:"", notas:""};
+}
+
+function statsEmpresaMes(emp, mes) {
+  const obs = emp.obs[mes] || [];
+  const cierre = emp.cierre || [];
+  let total=0, done=0, urgentes=0;
+  [...obs, ...cierre.map(c=>"cierre::"+c)].forEach(ob => {
+    const key = `${emp.id}-${mes}-${ob}`;
+    total++;
+    const ck = getCheck(key);
+    if (ck.estado==="presentado") done++;
+    const d = diasRestantes(ck.fecha);
+    if (d!==null && d<=8 && ck.estado!=="presentado") urgentes++;
+  });
+  return {total, done, urgentes};
+}
+
+function statsGlobalesMes(mes) {
+  let total=0, done=0, urgentes=0;
+  EMPRESAS.forEach(emp => {
+    const s = statsEmpresaMes(emp, mes);
+    total+=s.total; done+=s.done; urgentes+=s.urgentes;
+  });
+  return {total, done, urgentes};
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────
+function render() {
+  const sg = statsGlobalesMes(state.mes);
+
+  // EMPRESAS FILTRADAS
+  const empFiltradas = EMPRESAS.filter(e =>
+    e.nombre.toLowerCase().includes(state.busqueda.toLowerCase()) ||
+    e.nit.includes(state.busqueda)
+  );
+
+  // CHECK ITEMS HTML
+  function checkItemHtml(empId, mes, ob, isCierre) {
+    const key = `${empId}-${mes}-${isCierre ? "cierre::"+ob : ob}`;
+    const ck = getCheck(key);
+    const dias = diasRestantes(ck.fecha);
+    const done = ck.estado === "presentado";
+    const urgente = dias!==null && dias<=3 && !done;
+    const color = COLORES[empId];
+    const isOpen = state.expandidos[key];
+
+    return `
+      <div class="check-item${done?" done":""}${urgente?" urgente":""}" id="ci-${CSS.escape(key)}">
+        <div class="check-row" onclick="toggleExpand('${key.replace(/'/g,"\\'")}')">
+          <div class="check-box${done?" checked":""}" style="--c:${color.bg}"
+            onclick="event.stopPropagation();toggleCheck('${key.replace(/'/g,"\\'")}')">
+            ${done?'<span style="color:#fff;font-size:12px;font-weight:900;line-height:1">✓</span>':""}
+          </div>
+          <span class="check-label${done?" done":""}">${ob}</span>
+          <div class="check-meta">
+            ${diasBadgeHtml(dias)}
+            <span style="color:#9CA3AF;font-size:12px">${isOpen?"▲":"▼"}</span>
+          </div>
+        </div>
+        ${isOpen ? `
+        <div class="check-detail">
+          <div class="field-group">
+            <div class="field">
+              <label>Fecha límite</label>
+              <input type="date" value="${ck.fecha||""}" onchange="updateCheck('${key.replace(/'/g,"\\'")}','fecha',this.value)"/>
+            </div>
+            <div class="field">
+              <label>Estado</label>
+              <select onchange="updateCheck('${key.replace(/'/g,"\\'")}','estado',this.value)">
+                <option value="pendiente"${ck.estado==="pendiente"?" selected":""}>⏳ Pendiente</option>
+                <option value="en-proceso"${ck.estado==="en-proceso"?" selected":""}>🔄 En proceso</option>
+                <option value="presentado"${ck.estado==="presentado"?" selected":""}>✅ Presentado</option>
+              </select>
+            </div>
+          </div>
+          <div class="field" style="margin-top:8px">
+            <label>Notas / Anotaciones</label>
+            <textarea rows="2" placeholder="Escribe aquí con Apple Pencil o teclado..."
+              onchange="updateCheck('${key.replace(/'/g,"\\'")}','notas',this.value)">${ck.notas||""}</textarea>
+          </div>
+        </div>` : ""}
+      </div>`;
+  }
+
+  // EMPRESA CARDS HTML
+  function empresaCardHtml(emp) {
+    const color = COLORES[emp.id];
+    const obs = emp.obs[state.mes] || [];
+    const cierre = emp.cierre || [];
+    if (obs.length===0 && cierre.length===0) return "";
+
+    const {total, done, urgentes} = statsEmpresaMes(emp, state.mes);
+    const collapsed = state.empresasColapsadas[emp.id];
+    const tab = state.tabs[emp.id] || "tributario";
+    const doneTrib = obs.filter(o=>getCheck(`${emp.id}-${state.mes}-${o}`).estado==="presentado").length;
+    const doneCierre = cierre.filter(c=>getCheck(`${emp.id}-${state.mes}-cierre::${c}`).estado==="presentado").length;
+    const pct = total>0?((done/total)*100):0;
+
+    return `
+      <div class="empresa-card">
+        <div class="empresa-header" style="background:linear-gradient(135deg,${color.bg} 0%,${color.bg}DD 100%)"
+          onclick="toggleEmpresa('${emp.id}')">
+          <div style="flex:1">
+            <div class="empresa-nombre">${emp.nombre}</div>
+            <div class="empresa-sub">NIT: ${emp.nit} · ${emp.actividad}</div>
+            <div class="empresa-badges">
+              <span class="badge badge-white">${emp.tipo==="Persona Natural"?"P. Natural":"P. Jurídica"}</span>
+              ${!emp.contabilidad?'<span class="badge badge-dark">Sin contabilidad</span>':""}
+            </div>
+          </div>
+          <div class="empresa-right">
+            ${urgentes>0?`<span class="badge-urgente">⚠️ ${urgentes}</span>`:""}
+            <span class="badge-prog">${done}/${total}</span>
+            <span class="chevron">${collapsed?"▼":"▲"}</span>
+          </div>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${color.bg}"></div></div>
+        ${!collapsed ? `
+        <div class="empresa-body">
+          <div class="tabs">
+            <button class="tab-btn" style="background:${tab==="tributario"?color.bg:"#F9FAFB"};
+              color:${tab==="tributario"?"#fff":color.text};border-color:${tab==="tributario"?color.bg:color.light}"
+              onclick="setTab('${emp.id}','tributario')">📋 Tributario (${doneTrib}/${obs.length})</button>
+            <button class="tab-btn" style="background:${tab==="cierre"?color.bg:"#F9FAFB"};
+              color:${tab==="cierre"?"#fff":color.text};border-color:${tab==="cierre"?color.bg:color.light}"
+              onclick="setTab('${emp.id}','cierre')">📊 Cierre (${doneCierre}/${cierre.length})</button>
+          </div>
+          ${tab==="tributario" ? (
+            obs.length===0
+              ? '<p class="empty-msg">Sin obligaciones tributarias este mes ✓</p>'
+              : obs.map(ob=>checkItemHtml(emp.id,state.mes,ob,false)).join("")
+          ) : (
+            cierre.length===0
+              ? '<p class="empty-msg">Sin tareas de cierre configuradas</p>'
+              : cierre.map(c=>checkItemHtml(emp.id,state.mes,c,true)).join("")
+          )}
+        </div>` : ""}
+      </div>`;
+  }
+
+  // PENDIENTES LIBRES MODAL
+  const modalHtml = state.modalPendiente ? `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <div class="modal-title">📌 Pendientes Adicionales</div>
+        ${state.pendientesLibres.map((p,i)=>`
+          <div class="pendiente-libre">
+            <div class="check-box${p.done?" checked":""}" style="--c:#0F172A;flex-shrink:0"
+              onclick="togglePendienteLibre(${i})">
+              ${p.done?'<span style="color:#fff;font-size:12px;font-weight:900">✓</span>':""}
+            </div>
+            <span style="flex:1;font-size:14px;${p.done?"text-decoration:line-through;color:#9CA3AF":""}">${p.texto}</span>
+            <button class="del-btn" onclick="deletePendienteLibre(${i})">×</button>
+          </div>`).join("")}
+        <input class="modal-input" style="margin-top:14px" placeholder="Agregar pendiente..."
+          value="${state.nuevoPendiente}" oninput="state.nuevoPendiente=this.value"
+          onkeydown="if(event.key==='Enter')addPendienteLibre()"/>
+        <button class="modal-btn" onclick="addPendienteLibre()">+ Agregar</button>
+        <button class="modal-close" onclick="closeModal()">Cerrar</button>
+      </div>
+    </div>` : "";
+
+  const todosVaciosMes = empFiltradas.every(e=>(e.obs[state.mes]||[]).length===0 && e.cierre.length===0);
+
+  document.getElementById("app").innerHTML = `
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <div class="header-sub">Julieth · Contadora Pública</div>
+          <div class="header-title">Calendario Tributario 🇨🇴</div>
+        </div>
+        <div class="header-prog">
+          <div class="header-prog-label">Progreso ${MESES[state.mes-1]}</div>
+          <div class="header-prog-val${sg.urgentes>0?" urgente":""}">${sg.done}/${sg.total}</div>
+        </div>
+      </div>
+      <div class="stats">
+        ${[
+          {v:sg.total,l:"Total",c:"#93C5FD"},
+          {v:sg.done,l:"Listos",c:"#86EFAC"},
+          {v:sg.total-sg.done,l:"Pendientes",c:"#FCD34D"},
+          {v:sg.urgentes,l:"Urgentes",c:sg.urgentes>0?"#FCA5A5":"#93C5FD"},
+        ].map(s=>`
+          <div class="stat">
+            <div class="stat-v" style="color:${s.c}">${s.v}</div>
+            <div class="stat-l">${s.l}</div>
+          </div>`).join("")}
+      </div>
+      <div class="meses">
+        ${MESES.map((m,i)=>{
+          const mes=i+1;
+          const activo=mes===state.mes;
+          const hayCosas=EMPRESAS.some(e=>(e.obs[mes]||[]).length>0);
+          return `<button class="mes-btn${activo?" activo":""}${!hayCosas?" sin-datos":""}"
+            onclick="setMes(${mes})">${m.slice(0,3)}${activo?'<span class="mes-dot"></span>':""}</button>`;
+        }).join("")}
+      </div>
+    </div>
+
+    <div class="content">
+      <input class="search" placeholder="🔍 Buscar empresa o NIT..." value="${state.busqueda}"
+        oninput="state.busqueda=this.value;render()"/>
+
+      ${todosVaciosMes ? `
+        <div class="empty-mes">
+          <div class="empty-mes-icon">🎉</div>
+          <div class="empty-mes-txt">Sin obligaciones en ${MESES[state.mes-1]}</div>
+        </div>` :
+        empFiltradas.map(e=>empresaCardHtml(e)).join("")
+      }
+
+      <p class="save-note">💾 Guardado automáticamente en tu dispositivo · 2026</p>
+    </div>
+
+    <button class="fab" onclick="openModal()" title="Pendientes adicionales">📌</button>
+    ${modalHtml}
+  `;
+}
+
+// ─── ACCIONES ─────────────────────────────────────────────────────────
+function setMes(m) { state.mes=m; render(); }
+function toggleEmpresa(id) { state.empresasColapsadas[id]=!state.empresasColapsadas[id]; render(); }
+function setTab(id, tab) { state.tabs[id]=tab; render(); }
+function toggleExpand(key) { state.expandidos[key]=!state.expandidos[key]; render(); }
+
+function toggleCheck(key) {
+  const ck = getCheck(key);
+  state.checks[key] = {...ck, estado: ck.estado==="presentado"?"pendiente":"presentado"};
+  saveStorage(); render();
+}
+
+function updateCheck(key, field, val) {
+  const ck = getCheck(key);
+  state.checks[key] = {...ck, [field]: val};
+  saveStorage();
+  // re-render solo el badge de días sin perder foco en inputs
+  const item = document.getElementById("ci-"+CSS.escape(key));
+  if (item) {
+    const dias = diasRestantes(state.checks[key].fecha);
+    const metaEl = item.querySelector(".check-meta");
+    if (metaEl) {
+      const chevron = metaEl.querySelector("span:last-child");
+      metaEl.innerHTML = diasBadgeHtml(dias) + (chevron ? chevron.outerHTML : "");
+    }
+  }
+}
+
+function openModal() { state.modalPendiente=true; render(); }
+function closeModal() { state.modalPendiente=false; render(); }
+
+function addPendienteLibre() {
+  if (!state.nuevoPendiente.trim()) return;
+  state.pendientesLibres.push({texto:state.nuevoPendiente.trim(), done:false});
+  state.nuevoPendiente="";
+  saveStorage(); render();
+}
+
+function togglePendienteLibre(i) {
+  state.pendientesLibres[i].done = !state.pendientesLibres[i].done;
+  saveStorage(); render();
+}
+
+function deletePendienteLibre(i) {
+  state.pendientesLibres.splice(i,1);
+  saveStorage(); render();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────
+loadStorage();
+render();
+</script>
+</body>
+</html>
