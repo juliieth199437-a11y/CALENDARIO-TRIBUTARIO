@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Tributario"/>
+<meta name="theme-color" content="#1E2A3A"/>
+<title>Calendario Tributario · Julieth</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#F0F2F5;min-height:100vh;color:#1A2332;overscroll-behavior:none;}
+::-webkit-scrollbar{display:none;}
+
+.header{background:linear-gradient(150deg,#1E2A3A 0%,#2C3E55 100%);padding:52px 18px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.header-sub{font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:3px;text-transform:uppercase;font-weight:600;margin-bottom:5px;}
+.header-title{font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:-0.3px;}
+.prog-label{font-size:9px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:2px;text-align:right;margin-bottom:3px;}
+.prog-val{font-size:22px;font-weight:700;color:#7EB8D4;text-align:right;}
+.prog-val.urg{color:#E07B6A;}
+
+.stats{display:flex;gap:1px;background:#162030;}
+.stat{flex:1;background:#1E2A3A;padding:10px 4px;text-align:center;}
+.stat-v{font-size:16px;font-weight:700;color:#7EB8D4;}
+.stat-v.urg{color:#E07B6A;}
+.stat-v.pend{color:#B8C5D0;}
+.stat-l{font-size:8px;color:rgba(255,255,255,0.3);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+
+.meses{display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.mes-btn{background:transparent;color:rgba(255,255,255,0.35);border:none;border-bottom:2px solid transparent;padding:10px 13px;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;text-transform:uppercase;letter-spacing:1.5px;transition:all 0.15s;}
+.mes-btn.activo{color:#FFFFFF;border-bottom-color:#7EB8D4;}
+.mes-btn.sin-datos{opacity:0.2;}
+
+.content{max-width:720px;margin:0 auto;padding:16px 14px 80px;}
+
+.search{width:100%;border:1px solid #D5DCE6;border-radius:6px;padding:10px 14px;font-size:13px;background:#FFFFFF;color:#1A2332;margin-bottom:14px;font-family:inherit;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.search::placeholder{color:#9AABB8;}
+.search:focus{outline:none;border-color:#5B8DB8;}
+
+.empresa-card{background:#FFFFFF;border:1px solid #DDE3EC;border-radius:8px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+.emp-header{padding:14px 16px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;border-left:4px solid var(--ec);}
+.emp-nombre{color:#1A2332;font-weight:700;font-size:13px;}
+.emp-sub{color:#7A8FA0;font-size:10px;margin-top:3px;}
+.emp-badges{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;}
+.badge{font-size:8px;font-weight:700;border-radius:3px;padding:2px 7px;text-transform:uppercase;letter-spacing:0.8px;}
+.badge-tipo{background:#EEF2F7;color:#5B7A96;border:1px solid #D5DCE6;}
+.badge-noct{background:#FEF3F0;color:#C0604A;border:1px solid #F0C8C0;}
+.emp-right{display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:auto;}
+.badge-urg{background:#FEF3F0;color:#C0604A;font-size:10px;font-weight:700;border-radius:3px;padding:3px 8px;border:1px solid #F0C8C0;}
+.badge-prog{color:#7A8FA0;font-size:11px;font-weight:600;}
+.chevron{color:#B0BFCC;font-size:11px;}
+
+.prog-bar{height:2px;background:#EEF2F7;}
+.prog-fill{height:100%;transition:width 0.4s;background:var(--ec);opacity:0.7;}
+
+.emp-body{padding:12px 14px 10px;}
+
+.tabs{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid #EEF2F7;}
+.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;padding:8px 14px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;text-transform:uppercase;letter-spacing:1px;color:#9AABB8;transition:all 0.15s;}
+.tab-btn.on{color:#1A2332;border-bottom-color:var(--ec);}
+
+.check-item{border-radius:5px;margin-bottom:6px;border:1px solid #E8EDF3;background:#FAFBFC;overflow:hidden;}
+.check-item.done{opacity:0.5;}
+.check-item.urg{border-color:#F0C8C0;background:#FFF9F8;}
+.check-row{display:flex;align-items:center;padding:10px 12px;gap:10px;cursor:pointer;}
+.chk{width:18px;height:18px;border-radius:3px;border:1.5px solid #C0CDD8;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;background:#FFF;transition:all 0.15s;}
+.chk.on{border-color:var(--ec);background:var(--ec);}
+.chk-label{flex:1;font-size:12px;font-weight:600;color:#2C3E55;}
+.chk-label.done{text-decoration:line-through;color:#9AABB8;}
+.fecha-lbl{font-size:9px;color:#9AABB8;margin-top:2px;}
+.meta{display:flex;gap:5px;align-items:center;flex-shrink:0;}
+.db{border-radius:3px;padding:2px 7px;font-size:10px;font-weight:700;}
+.db-r{background:#FEF0EE;color:#C0604A;border:1px solid #F0C8C0;}
+.db-y{background:#FEF9EE;color:#A07820;border:1px solid #E8D8A0;}
+.db-g{background:#F0F8F0;color:#3A7A4A;border:1px solid #B8D8C0;}
+
+.detail{padding:0 12px 12px;border-top:1px solid #EEF2F7;}
+.fgrp{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.fld{flex:1;min-width:130px;}
+.fld label{font-size:9px;color:#7A8FA0;font-weight:700;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;}
+.fld input,.fld select,.fld textarea{width:100%;border:1px solid #D5DCE6;border-radius:4px;padding:7px 9px;font-size:12px;color:#1A2332;background:#FAFBFC;font-family:inherit;}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:#5B8DB8;}
+.fld textarea{resize:vertical;}
+.gcal{display:inline-block;margin-top:8px;background:#EEF4FA;border:1px solid #C0D8EC;border-radius:4px;padding:5px 10px;font-size:10px;color:#3A6A96;cursor:pointer;font-family:inherit;font-weight:700;letter-spacing:0.5px;text-decoration:none;text-transform:uppercase;}
+
+.empty-msg{color:#9AABB8;font-size:12px;text-align:center;padding:16px 0;}
+.save-note{text-align:center;font-size:10px;color:#B0BFCC;margin-top:8px;letter-spacing:1px;text-transform:uppercase;}
+.empty-mes{text-align:center;padding:50px 20px;color:#B0BFCC;}
+.empty-mes-icon{font-size:28px;margin-bottom:10px;opacity:0.4;}
+.empty-mes-txt{font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;}
+
+.fab{position:fixed;bottom:24px;right:18px;width:46px;height:46px;border-radius:6px;background:#2C3E55;color:#7EB8D4;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(30,42,58,0.3);z-index:200;display:flex;align-items:center;justify-content:center;font-weight:300;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(20,30,45,0.6);z-index:300;display:flex;align-items:flex-end;}
+.modal{background:#FFFFFF;border-radius:12px 12px 0 0;padding:20px 16px 40px;width:100%;max-height:70vh;overflow-y:auto;box-shadow:0 -4px 24px rgba(0,0,0,0.15);}
+.modal-title{font-size:12px;font-weight:700;color:#2C3E55;margin-bottom:16px;text-transform:uppercase;letter-spacing:2px;}
+.modal-input{width:100%;border:1px solid #D5DCE6;border-radius:5px;padding:10px 14px;font-size:13px;font-family:inherit;margin-bottom:8px;color:#1A2332;background:#FAFBFC;}
+.modal-btn{width:100%;background:#2C3E55;color:#FFFFFF;border:none;border-radius:5px;padding:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:1px;}
+.pend-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #EEF2F7;}
+.pend-item:last-child{border-bottom:none;}
+.del-btn{background:none;border:none;color:#C0CDD8;font-size:16px;cursor:pointer;padding:0 4px;}
+.modal-close{background:transparent;color:#9AABB8;border:1px solid #DDE3EC;border-radius:5px;padding:10px;font-size:11px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;font-family:inherit;text-transform:uppercase;letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const FECHAS={
+  "LNC":{1:{"IVA Bimestral":"2026-01-23","Retefuente":"2026-01-23","ReteICA":"2026-01-16"},2:{"Retefuente":"2026-02-21","ICA Bogotá":"2026-02-21"},3:{"IVA Bimestral":"2026-03-20","Retefuente":"2026-03-21","ReteICA":"2026-03-20"},4:{"Retefuente":"2026-04-23","ICA Bogotá":"2026-04-10"},5:{"IVA Bimestral":"2026-05-25","Retefuente":"2026-05-22","ReteICA":"2026-05-22","ICA Cajicá":"2026-05-25","Declaración Renta":"2026-05-25","Exógena":"2026-05-22"},6:{"Retefuente":"2026-06-24","ICA Cajicá":"2026-06-01"},7:{"IVA Bimestral":"2026-07-22","Retefuente":"2026-07-21","ReteICA":"2026-07-17"},8:{"Retefuente":"2026-08-25","ICA Bogotá":"2026-08-21"},9:{"IVA Bimestral":"2026-09-21","Retefuente":"2026-09-19","ReteICA":"2026-09-18"},10:{"Retefuente":"2026-10-22","ICA Bogotá":"2026-10-09"},11:{"IVA Bimestral":"2026-11-24","Retefuente":"2026-11-25","ReteICA":"2026-11-20"},12:{"Retefuente":"2026-12-22","ICA Bogotá":"2026-12-11"}},
+  "CHONAMA":{1:{"IVA Cuatrimestral":"2026-01-16","Retefuente":"2026-01-16","ReteICA":"2026-01-16"},2:{"Retefuente":"2026-02-13","ICA Bogotá":"2026-02-27"},3:{"Retefuente":"2026-03-13","ReteICA":"2026-03-20"},4:{"Retefuente":"2026-04-16"},5:{"IVA Cuatrimestral":"2026-05-15","Retefuente":"2026-05-15","ReteICA":"2026-05-22","Declaración Renta":"2026-05-15"},6:{"Retefuente":"2026-06-16","Exógena":"2026-06-11"},7:{"Retefuente":"2026-07-14","ReteICA":"2026-07-17"},8:{"Retefuente":"2026-08-18"},9:{"IVA Cuatrimestral":"2026-09-14","Retefuente":"2026-09-14","ReteICA":"2026-09-18"},10:{"Retefuente":"2026-10-15"},11:{"Retefuente":"2026-11-17","ReteICA":"2026-11-20"},12:{"Retefuente":"2026-12-15"}},
+  "JMB":{1:{"IVA Cuatrimestral":"2026-01-19","Retefuente":"2026-01-19"},2:{"Retefuente":"2026-02-17","ICA":"2026-02-27"},3:{"Retefuente":"2026-03-17"},4:{"Retefuente":"2026-04-15"},5:{"IVA Cuatrimestral":"2026-05-19","Retefuente":"2026-05-16","Impuesto al Patrimonio":"2026-05-16"},6:{"Retefuente":"2026-06-17","Exógena":"2026-06-04"},7:{"Retefuente":"2026-07-15"},8:{"Retefuente":"2026-08-19"},9:{"IVA Cuatrimestral":"2026-09-15","Retefuente":"2026-09-15"},10:{"Retefuente":"2026-10-16","Declaración Renta PN":"2026-10-07"},11:{"Retefuente":"2026-11-19"},12:{"Retefuente":"2026-12-16"}},
+  "YACOTA":{1:{"IVA Bimestral":"2026-01-16","Retefuente":"2026-01-16","ICO":"2026-01-16","ICUI":"2026-01-16","ReteICA Cota":"2026-01-23"},2:{"Retefuente":"2026-02-13","ICA Bogotá":"2026-02-13"},3:{"IVA Bimestral":"2026-03-13","Retefuente":"2026-03-13","ICO":"2026-03-13","ICUI":"2026-03-13","ReteICA Cota":"2026-03-20","ICA Cota":"2026-03-31"},4:{"Retefuente":"2026-04-16"},5:{"IVA Bimestral":"2026-05-15","Retefuente":"2026-05-15","ICO":"2026-05-15","ICUI":"2026-05-15","ReteICA Cota":"2026-05-20","Declaración Renta":"2026-05-15"},6:{"Retefuente":"2026-06-16","Exógena":"2026-06-02"},7:{"IVA Bimestral":"2026-07-14","Retefuente":"2026-07-14","ICO":"2026-07-14","ICUI":"2026-07-14","ReteICA Cota":"2026-07-21"},8:{"Retefuente":"2026-08-18"},9:{"IVA Bimestral":"2026-09-14","Retefuente":"2026-09-14","ICO":"2026-09-14","ICUI":"2026-09-14","ReteICA Cota":"2026-09-21"},10:{"Retefuente":"2026-10-15"},11:{"IVA Bimestral":"2026-11-17","Retefuente":"2026-11-17","ICO":"2026-11-17","ICUI":"2026-11-17","ReteICA Cota":"2026-11-20"},12:{"Retefuente":"2026-12-15"}},
+  "KTJESUS":{2:{"ICA Bogotá":"2026-02-13"},5:{"IVA Cuatrimestral":"2026-05-13","Declaración Renta":"2026-08-13","Exógena":"2026-05-14"},9:{"IVA Cuatrimestral":"2026-09-11"}},
+  "LUZ":{2:{"ICA Bogotá":"2026-02-13"},5:{"IVA Cuatrimestral":"2026-05-12"},8:{"Declaración Renta":"2026-08-13"},9:{"IVA Cuatrimestral":"2026-09-10"}},
+};
+
+const MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+const EC={LNC:"#4A6FA5",CHONAMA:"#3A7D6A",JMB:"#5B7DB5",YACOTA:"#8B6914",KTJESUS:"#6A5A8A",LUZ:"#3A7A8A"};
+
+const EMPRESAS=[
+  {id:"LNC",nombre:"LNC ORDICO SAS",nit:"901.043.099",tipo:"Persona Jurídica",actividad:"Comercializadora de carnes y restaurante",ct:true,
+   obs:{1:["IVA Bimestral","Retefuente","ReteICA"],2:["Retefuente"],3:["IVA Bimestral","Retefuente","ReteICA"],4:["Retefuente"],5:["IVA Bimestral","Retefuente","ReteICA","ICA Cajicá","Declaración Renta","Exógena"],6:["Retefuente","ICA Cajicá"],7:["IVA Bimestral","Retefuente","ReteICA"],8:["Retefuente"],9:["IVA Bimestral","Retefuente","ReteICA"],10:["Retefuente"],11:["IVA Bimestral","Retefuente","ReteICA"],12:["Retefuente"]},
+   ci:["Balance de Prueba","Estado de Resultados","Conciliación Bancaria","Cuentas por Cobrar","Cuentas por Pagar","Nómina y Seg. Social","Depreciaciones","Provisiones"]},
+  {id:"CHONAMA",nombre:"CHONAMA COL SAS",nit:"901.251.294",tipo:"Persona Jurídica",actividad:"Arrendar a través de inmobiliaria bienes propios",ct:true,
+   obs:{1:["IVA Cuatrimestral","Retefuente","ReteICA"],2:["Retefuente","ICA Bogotá"],3:["Retefuente","ReteICA"],4:["Retefuente"],5:["IVA Cuatrimestral","Retefuente","ReteICA","Declaración Renta"],6:["Retefuente","Exógena"],7:["Retefuente","ReteICA"],8:["Retefuente"],9:["IVA Cuatrimestral","Retefuente","ReteICA"],10:["Retefuente"],11:["Retefuente","ReteICA"],12:["Retefuente"]},
+   ci:["Balance de Prueba","Estado de Resultados","Conciliación Bancaria","Arriendos por Cobrar","Cuentas por Pagar","Seguridad Social","Depreciaciones"]},
+  {id:"JMB",nombre:"JUAN MARIO BONILLA PEREA",nit:"79.506.175",tipo:"Persona Natural",actividad:"Arrendar a través de inmobiliaria bienes propios",ct:true,
+   obs:{1:["IVA Cuatrimestral","Retefuente"],2:["Retefuente","ICA"],3:["Retefuente"],4:["Retefuente"],5:["IVA Cuatrimestral","Retefuente","Impuesto al Patrimonio"],6:["Retefuente","Exógena"],7:["Retefuente"],8:["Retefuente"],9:["IVA Cuatrimestral","Retefuente"],10:["Retefuente","Declaración Renta PN"],11:["Retefuente"],12:["Retefuente"]},
+   ci:["Balance de Prueba","Conciliación Bancaria","Revisión Arriendos","Gastos Personales Deducibles","Depreciaciones"]},
+  {id:"YACOTA",nombre:"YACOTA SAS",nit:"900.570.364",tipo:"Persona Jurídica",actividad:"Fabricación y comercialización de chorizos",ct:true,
+   obs:{1:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota"],2:["Retefuente","ICA Bogotá"],3:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota","ICA Cota"],4:["Retefuente"],5:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota","Declaración Renta"],6:["Retefuente","Exógena"],7:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota"],8:["Retefuente"],9:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota"],10:["Retefuente"],11:["IVA Bimestral","Retefuente","ICO","ICUI","ReteICA Cota"],12:["Retefuente"]},
+   ci:["Balance de Prueba","Estado de Resultados","Inventario de Producto","Conciliación Bancaria","Cuentas por Cobrar","Cuentas por Pagar","Nómina y Seg. Social","Depreciaciones","Costos de Producción"]},
+  {id:"KTJESUS",nombre:"JESUS HERNAN TORRES",nit:"1.015.423.003",tipo:"Persona Natural",actividad:"Comercialización de telas y productos textiles",ct:false,
+   obs:{2:["ICA Bogotá"],5:["IVA Cuatrimestral","Declaración Renta","Exógena"],9:["IVA Cuatrimestral"]},
+   ci:["Revisión Ingresos","Revisión Gastos Deducibles","Soporte Compras y Ventas"]},
+  {id:"LUZ",nombre:"LUZ STELLA TORRES PAIBA",nit:"53.052.501",tipo:"Persona Natural",actividad:"Comercialización de muebles",ct:false,
+   obs:{2:["ICA Bogotá"],5:["IVA Cuatrimestral"],8:["Declaración Renta"],9:["IVA Cuatrimestral"]},
+   ci:["Revisión Ingresos","Revisión Gastos Deducibles","Soporte Compras y Ventas"]},
+];
+
+function gf(id,m,ob){return(FECHAS[id]&&FECHAS[id][m]&&FECHAS[id][m][ob])||"";}
+function ff(d){if(!d)return"";const[y,m,dd]=d.split("-");return`${dd}/${m}/${y}`;}
+
+let S={mes:new Date().getMonth()+1,cks:{},exp:{},tabs:{},col:{},bus:"",modal:false,np:"",pends:[]};
+function load(){try{const d=localStorage.getItem("cal-v6");if(d){const p=JSON.parse(d);S.cks=p.cks||{};S.pends=p.pends||[];}}catch(e){}}
+function save(){try{localStorage.setItem("cal-v6",JSON.stringify({cks:S.cks,pends:S.pends}));}catch(e){}}
+
+function dr(f){if(!f)return null;const h=new Date();h.setHours(0,0,0,0);return Math.ceil((new Date(f+"T00:00:00")-h)/86400000);}
+function dbH(d){
+  if(d===null)return"";
+  let c,t;
+  if(d<0){c="db db-r";t=`Vencido ${Math.abs(d)}d`;}
+  else if(d===0){c="db db-r";t="Hoy";}
+  else if(d<=3){c="db db-r";t=`${d}d`;}
+  else if(d<=8){c="db db-y";t=`${d}d`;}
+  else{c="db db-g";t=`${d}d`;}
+  return`<span class="${c}">${t}</span>`;
+}
+
+function gck(key,id,m,ob){
+  if(!S.cks[key]){const f=gf(id,m,ob);return{e:"pendiente",f,n:""};}
+  return S.cks[key];
+}
+
+function gcH(ob,f,nombre){
+  if(!f)return"";
+  const d=f.replace(/-/g,"");
+  return`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("📋 "+ob+" · "+nombre)}&dates=${d}/${d}`;
+}
+
+function ckH(id,m,ob,isCI){
+  const key=`${id}-${m}-${isCI?"c::"+ob:ob}`;
+  const ck=gck(key,id,m,isCI?"":ob);
+  const d=dr(ck.f);const done=ck.e==="presentado";const urg=d!==null&&d<=3&&!done;
+  const ec=EC[id];const open=S.exp[key];
+  const sk=key.replace(/\\/g,"\\\\").replace(/'/g,"\\'");
+  const emp=EMPRESAS.find(e=>e.id===id);
+  const gc=!isCI?gcH(ob,ck.f,emp?.nombre||""):"";
+  return`<div class="check-item${done?" done":""}${urg?" urg":""}" style="--ec:${ec}">
+    <div class="check-row" onclick="tE('${sk}')">
+      <div class="chk${done?" on":""}" style="--ec:${ec}" onclick="event.stopPropagation();tC('${sk}','${id}',${m},'${ob.replace(/'/g,"\\'")}',${isCI})">
+        ${done?'<span style="color:#fff;font-size:11px;font-weight:900">✓</span>':""}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="chk-label${done?" done":""}">${ob}</div>
+        ${ck.f?`<div class="fecha-lbl">${ff(ck.f)}</div>`:""}
+      </div>
+      <div class="meta">${dbH(d)}<span style="color:#C0CDD8;font-size:11px;margin-left:3px">${open?"▲":"▼"}</span></div>
+    </div>
+    ${open?`<div class="detail">
+      <div class="fgrp">
+        <div class="fld"><label>Fecha límite</label><input type="date" value="${ck.f||""}" onchange="uC('${sk}','f',this.value)"/></div>
+        <div class="fld"><label>Estado</label><select onchange="uC('${sk}','e',this.value)">
+          <option value="pendiente"${ck.e==="pendiente"?" selected":""}>Pendiente</option>
+          <option value="en-proceso"${ck.e==="en-proceso"?" selected":""}>En proceso</option>
+          <option value="presentado"${ck.e==="presentado"?" selected":""}>Presentado</option>
+        </select></div>
+      </div>
+      <div class="fld" style="margin-top:8px"><label>Notas</label>
+        <textarea rows="2" placeholder="Anotaciones con Apple Pencil o teclado..." onchange="uC('${sk}','n',this.value)">${ck.n||""}</textarea></div>
+      ${gc?`<a href="${gc}" target="_blank" style="text-decoration:none"><span class="gcal">+ Google Calendar</span></a>`:""}
+    </div>`:""}
+  </div>`;
+}
+
+function sEmp(emp,m){
+  const obs=emp.obs[m]||[];const ci=emp.ci||[];
+  let t=0,d=0,u=0;
+  [...obs,...ci.map(c=>"c::"+c)].forEach(ob=>{
+    const key=`${emp.id}-${m}-${ob}`;t++;
+    const ck=gck(key,emp.id,m,ob.replace("c::",""));
+    if(ck.e==="presentado")d++;
+    const dd=dr(ck.f);if(dd!==null&&dd<=8&&ck.e!=="presentado")u++;
+  });
+  return{t,d,u};
+}
+
+function sGlob(m){
+  let t=0,d=0,u=0;
+  EMPRESAS.forEach(e=>{const s=sEmp(e,m);t+=s.t;d+=s.d;u+=s.u;});
+  return{t,d,u};
+}
+
+function empH(emp){
+  const ec=EC[emp.id];const obs=emp.obs[S.mes]||[];const ci=emp.ci||[];
+  if(!obs.length&&!ci.length)return"";
+  const{t,d,u}=sEmp(emp,S.mes);const col=S.col[emp.id];
+  const tab=S.tabs[emp.id]||"trib";
+  const dT=obs.filter(o=>gck(`${emp.id}-${S.mes}-${o}`,emp.id,S.mes,o).e==="presentado").length;
+  const dC=ci.filter(c=>gck(`${emp.id}-${S.mes}-c::${c}`,emp.id,S.mes,"").e==="presentado").length;
+  const pct=t>0?(d/t*100):0;
+  return`<div class="empresa-card" style="--ec:${ec}">
+    <div class="emp-header" onclick="tCol('${emp.id}')">
+      <div style="flex:1">
+        <div class="emp-nombre">${emp.nombre}</div>
+        <div class="emp-sub">${emp.nit} · ${emp.actividad}</div>
+        <div class="emp-badges">
+          <span class="badge badge-tipo">${emp.tipo}</span>
+          ${!emp.ct?'<span class="badge badge-noct">Sin contabilidad</span>':""}
+        </div>
+      </div>
+      <div class="emp-right">
+        ${u>0?`<span class="badge-urg">${u} urgente${u>1?"s":""}</span>`:""}
+        <span class="badge-prog">${d}/${t}</span>
+        <span class="chevron">${col?"▼":"▲"}</span>
+      </div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    ${!col?`<div class="emp-body">
+      <div class="tabs">
+        <button class="tab-btn${tab==="trib"?" on":""}" style="--ec:${ec}" onclick="tTab('${emp.id}','trib')">Tributario (${dT}/${obs.length})</button>
+        <button class="tab-btn${tab==="ci"?" on":""}" style="--ec:${ec}" onclick="tTab('${emp.id}','ci')">Cierre Contable (${dC}/${ci.length})</button>
+      </div>
+      ${tab==="trib"?(obs.length?obs.map(o=>ckH(emp.id,S.mes,o,false)).join(""):'<p class="empty-msg">Sin obligaciones este mes</p>'):(ci.length?ci.map(c=>ckH(emp.id,S.mes,c,true)).join(""):'<p class="empty-msg">Sin tareas configuradas</p>')}
+    </div>`:""}
+  </div>`;
+}
+
+function render(){
+  const sg=sGlob(S.mes);
+  const ef=EMPRESAS.filter(e=>e.nombre.toLowerCase().includes(S.bus.toLowerCase())||e.nit.includes(S.bus));
+  const vac=ef.every(e=>!(e.obs[S.mes]||[]).length);
+  const modal=S.modal?`<div class="modal-overlay" onclick="if(event.target===this)cM()">
+    <div class="modal">
+      <div class="modal-title">Pendientes adicionales</div>
+      ${S.pends.map((p,i)=>`<div class="pend-item">
+        <div class="chk${p.d?" on":""}" style="--ec:#4A6FA5;flex-shrink:0" onclick="tP(${i})">
+          ${p.d?'<span style="color:#fff;font-size:11px;font-weight:900">✓</span>':""}
+        </div>
+        <span style="flex:1;font-size:13px;color:${p.d?"#9AABB8":"#1A2332"};${p.d?"text-decoration:line-through":""}">${p.tx}</span>
+        <button class="del-btn" onclick="dP(${i})">×</button>
+      </div>`).join("")}
+      <input class="modal-input" style="margin-top:12px" placeholder="Nuevo pendiente..." value="${S.np}" oninput="S.np=this.value" onkeydown="if(event.key==='Enter')aP()"/>
+      <button class="modal-btn" onclick="aP()">Agregar</button>
+      <button class="modal-close" onclick="cM()">Cerrar</button>
+    </div>
+  </div>`:"";
+
+  document.getElementById("app").innerHTML=`
+    <div class="header">
+      <div class="header-top">
+        <div><div class="header-sub">Julieth Dueñas · Contadora Pública</div><div class="header-title">Calendario Tributario 2026</div></div>
+        <div><div class="prog-label">Progreso ${MESES[S.mes-1]}</div><div class="prog-val${sg.u>0?" urg":""}">${sg.d} / ${sg.t}</div></div>
+      </div>
+      <div class="stats">
+        ${[{v:sg.t,l:"Total",c:""},{v:sg.d,l:"Completados",c:""},{v:sg.t-sg.d,l:"Pendientes",c:" pend"},{v:sg.u,l:"Urgentes",c:sg.u>0?" urg":""}]
+          .map(s=>`<div class="stat"><div class="stat-v${s.c}">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join("")}
+      </div>
+      <div class="meses">
+        ${MESES.map((m,i)=>{const mes=i+1;const ac=mes===S.mes;const hay=EMPRESAS.some(e=>(e.obs[mes]||[]).length>0);
+          return`<button class="mes-btn${ac?" activo":""}${!hay?" sin-datos":""}" onclick="sM(${mes})">${m.slice(0,3).toUpperCase()}</button>`;}).join("")}
+      </div>
+    </div>
+    <div class="content">
+      <input class="search" placeholder="Buscar empresa o NIT..." value="${S.bus}" oninput="S.bus=this.value;render()"/>
+      ${vac?`<div class="empty-mes"><div class="empty-mes-icon">✓</div><div class="empty-mes-txt">Sin obligaciones en ${MESES[S.mes-1]}</div></div>`:ef.map(e=>empH(e)).join("")}
+      <p class="save-note">Datos guardados localmente · 2026</p>
+    </div>
+    <button class="fab" onclick="oM()">+</button>
+    ${modal}`;
+}
+
+function sM(m){S.mes=m;render();}
+function tCol(id){S.col[id]=!S.col[id];render();}
+function tTab(id,t){S.tabs[id]=t;render();}
+function tE(key){S.exp[key]=!S.exp[key];render();}
+function tC(key,id,m,ob,isCI){const ck=gck(key,id,m,ob);S.cks[key]={...ck,e:ck.e==="presentado"?"pendiente":"presentado"};save();render();}
+function uC(key,f,v){const p=key.split("-");S.cks[key]={...gck(key,p[0],parseInt(p[1]),p.slice(2).join("-")),[f]:v};save();render();}
+function oM(){S.modal=true;render();}
+function cM(){S.modal=false;render();}
+function aP(){if(!S.np.trim())return;S.pends.push({tx:S.np.trim(),d:false});S.np="";save();render();}
+function tP(i){S.pends[i].d=!S.pends[i].d;save();render();}
+function dP(i){S.pends.splice(i,1);save();render();}
+
+load();render();
+</script>
+</body>
+</html>
